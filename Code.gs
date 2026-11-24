@@ -4,21 +4,21 @@ const CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQsKnkpIzLapkSe78mMmA
 const HEAD=['ID','Timestamp','Sesi','Tarikh','Bilangan Perjumpaan','Kategori','Unit','Tempat','Hadir','Sepatutnya','Peratus','Perincian','Modul PIKeBM','Aktiviti PIKeBM','Gambar 1 ID','Gambar 2 ID','Disediakan Oleh'];
 const CATS=['KELAB PERSATUAN','SUKAN PERMAINAN','PASUKAN BADAN BERUNIFORM'];
 function json_(obj){return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);}
-function doGet(){return json_({ok:true,service:'SMK Seri Ampang Kokurikulum API',version:'github-2'});}
-function doPost(e){try{const p=JSON.parse(e.postData.contents);const secret=PropertiesService.getScriptProperties().getProperty('ACCESS_CODE');if(!secret||secret.length<12)return json_({ok:false,code:'AUTH',error:'Pentadbir perlu menetapkan ACCESS_CODE sekurang-kurangnya 12 aksara dalam Script Properties.'});if(typeof p.code!=='string'||p.code!==secret)return json_({ok:false,code:'AUTH',error:'Kod akses tidak sah.'});const args=Array.isArray(p.args)?p.args:[];let data;switch(p.action){case 'getUnits':data=getUnits();break;case 'listReports':data=listReports();break;case 'saveReport':data=saveReport(args[0]);break;case 'reportPhotos':data=reportPhotos(args[0]);break;default:throw Error('Tindakan tidak sah.');}return json_({ok:true,data:data});}catch(err){return json_({ok:false,error:String(err.message||err)});}}
+function doGet(e){if(e && e.parameter && e.parameter.action==='getUnits'){try{return json_({ok:true,data:getUnits()});}catch(err){return json_({ok:false,error:String(err.message||err)});}}return json_({ok:true,service:'SMK Seri Ampang Kokurikulum API',version:'github-3'});}
+function doPost(e){try{const p=JSON.parse(e.postData.contents);const args=Array.isArray(p.args)?p.args:[];let data;switch(p.action){case 'getUnits':data=getUnits();break;case 'listReports':data=listReports();break;case 'saveReport':data=saveReport(args[0]);break;case 'reportPhotos':data=reportPhotos(args[0]);break;default:throw Error('Tindakan tidak sah.');}return json_({ok:true,data:data});}catch(err){return json_({ok:false,error:String(err.message||err)});}}
 
 function sheet_(){const s=SpreadsheetApp.openById(SHEET_ID);let t=s.getSheetByName('Laporan Perjumpaan');if(!t)t=s.insertSheet('Laporan Perjumpaan');if(!t.getLastRow()){t.appendRow(HEAD);t.setFrozenRows(1);}else if(t.getRange(1,1,1,HEAD.length).getDisplayValues()[0].join('|')!==HEAD.join('|'))throw Error('Header tab Laporan Perjumpaan tidak sepadan.');return t;}
 function setup(){sheet_();DriveApp.getFolderById(FOLDER_ID).getName();return getUnits();}
-function category_(x){x=String(x).toUpperCase().replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();if(/BERUNIFORM|BADAN BERUNIFORM/.test(x))return CATS[2];if(/SUKAN|PERMAINAN/.test(x))return CATS[1];if(/KELAB|PERSATUAN/.test(x))return CATS[0];return '';}
+function category_(x){x=String(x).toUpperCase().replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();if(/BERUNIFORM|UNIFORM|^UB$|^PBB$/.test(x))return CATS[2];if(/SUKAN|PERMAINAN|^SP$/.test(x))return CATS[1];if(/KELAB|PERSATUAN|^KP$/.test(x))return CATS[0];return '';}
 function getUnits(){
  const res=UrlFetchApp.fetch(CSV,{muteHttpExceptions:true,followRedirects:true});
  if(res.getResponseCode()!==200)throw Error('CSV unit gagal dimuat: HTTP '+res.getResponseCode());
  const rows=Utilities.parseCsv(res.getContentText().replace(/^\uFEFF/,''));
  const norm=x=>String(x||'').trim().toUpperCase().replace(/\s+/g,' ');
- const h=(rows[0]||[]).map(norm), ci=h.indexOf('KATEGORI KOKURIKULUM'), ui=h.indexOf('NAMA UNIT');
+ const hi=rows.findIndex(r=>r.map(norm).includes('KATEGORI KOKURIKULUM')&&r.map(norm).includes('NAMA UNIT')); const h=(rows[hi]||[]).map(norm), ci=h.indexOf('KATEGORI KOKURIKULUM'), ui=h.indexOf('NAMA UNIT');
  if(ci<0||ui<0)throw Error('Header CSV mesti KATEGORI KOKURIKULUM dan NAMA UNIT.');
  const out={};CATS.forEach(c=>out[c]=[]);let last='';
- rows.slice(1).forEach(r=>{const raw=String(r[ci]||'').trim();if(raw)last=category_(raw);const v=String(r[ui]||'').trim();if(last&&v&&!out[last].some(x=>norm(x)===norm(v)))out[last].push(v);});
+ rows.slice(hi+1).forEach(r=>{const raw=String(r[ci]||'').trim();if(raw)last=category_(raw);const v=String(r[ui]||'').trim();if(last&&v&&!out[last].some(x=>norm(x)===norm(v)))out[last].push(v);});
  CATS.forEach(c=>out[c].sort((a,b)=>a.localeCompare(b)));
  if(!CATS.some(c=>out[c].length))throw Error('Tiada nama unit yang sepadan dalam CSV.');
  return out;

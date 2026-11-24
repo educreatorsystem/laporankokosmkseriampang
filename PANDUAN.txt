@@ -1,10 +1,6 @@
-GITHUB PAGES — SMK SERI AMPANG
-1. Gantikan Code.gs lama dengan Code.gs baharu. Simpan.
-2. Project Settings > Script Properties > Add script property: ACCESS_CODE. Value: cipta kod rahsia rawak sekurang-kurangnya 12 aksara (lebih panjang lebih baik). Kongsi hanya dengan guru dibenarkan. Jangan masukkan kod dalam GitHub.
-3. Run setup, benarkan akses. Deploy > Manage deployments > Edit > New version. Execute as Me, Who has access Anyone. Deploy. URL /exec yang sama telah dimasukkan dalam index.html. Jika URL berubah, edit const API.
-4. Buka URL /exec; sepatutnya keluar JSON dengan version github-2.
-5. GitHub: cipta repository, upload index.html sahaja ke root, commit. Settings > Pages > Deploy from a branch > main > /(root) > Save.
-6. Buka URL Pages, masukkan kod akses guru, uji senarai unit, simpan laporan ujian dua gambar, buka rekod dan cetak. Pilih A4 dan Save as PDF jika perlu.
-Nota: Kod akses tidak disimpan dalam HTML atau storage pelayar. Jangan upload Code.gs atau rekod murid ke repository awam. Web App perlu membenarkan permintaan tanpa log masuk Google untuk API ini; kod akses melindungi data, namun bukan pengganti akaun individu. Jika polisi sekolah tidak membenarkan Anyone, gunakan Web App dalaman asal. Sambungan sebenar belum diuji dengan akaun sekolah.
-
-Kemas kini v2: CSV menggunakan header KATEGORI KOKURIKULUM dan NAMA UNIT. Run testUnits untuk melihat hasil bacaan.
+V3 — Tanpa kod akses
+1. Gantikan Code.gs. Run setup dan testUnits.
+2. Deploy > Manage deployments > Edit > New version. Execute as Me, Anyone.
+3. Gantikan index.html pada GitHub Pages.
+4. Refresh halaman dan pilih kategori. Jika gagal klik Muat Semula Unit dan baca mesej status.
+AMARAN: Tanpa pengesahan, sesiapa yang mempunyai URL API boleh membaca rekod dan gambar serta menghantar laporan. Gunakan hanya jika dibenarkan sekolah; elakkan gambar atau maklumat sensitif.
